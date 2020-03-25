@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 
-public class Main implements ActionListener{
+public class Main{
 
 // Initialise some GUI variables
 JFrame main;
@@ -152,10 +152,5 @@ int index;
         run = new Main();
     }
 
-    // Allows for the class to be non abstract
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-    }
 }
 
