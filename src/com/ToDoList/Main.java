@@ -1,10 +1,22 @@
-package com.company;
-import java.lang.reflect.Array;
+package com.ToDoList;
+
+/*
+Date: 25/03/2020
+Author: Robbie Campbell
+
+Description: A program which serves as a to do list where the user can enter and remove items from the list. The current
+version does not use onClickListeners but that functionality will be coming soon, along with the ability to save the
+current state of the list, and remove them from system memory as opposed to this applications temporary memory. Also
+error handling will be implemented.
+
+ */
+
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
+
 
 
 public class Main{
@@ -20,9 +32,9 @@ Border raisedBorder;
 Font headerFont, mainFont;
 Color deepBlue, blue;
 String tasks;
-int index;
+private int index, current;
 
-    public Main(){
+    private Main(){
 
 ////////////////////// CREATE A GUI FOR THE TO DO LIST APPLICATION /////////////////////////////////
 
@@ -98,6 +110,37 @@ int index;
         removeTask.setBounds(20,590,380,30);
         todoListPanel.add(removeTask);
 
+        // Create a key listener to remove to do's from the list
+        removeTask.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                //None
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int key = e.getKeyCode();
+                if(key == KeyEvent.VK_ENTER) {
+                    int remover = Integer.parseInt(removeTask.getText());
+                    newTask.setText("");
+                    tasks.remove(remover - 1);
+                    index = 1;
+
+                    // This loop displays an index value and any values stored in the ArrayList
+                    for (String task : tasks) {
+                        index++;
+                        newTask.append("\n\n        " + (index - 1) + ": " + task);
+                    }
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                //None
+            }
+        });
+
+
         // Create a key listener to append to do's to the list
         inputTask.addKeyListener(new KeyListener() {
             @Override
@@ -112,6 +155,7 @@ int index;
                     tasks.add(inputTask.getText());
                     newTask.append("\n\n        " + index + ": " + tasks.get(tasks.size()-1));
                     index++;
+                    inputTask.setText("");
                 }
 
             }
@@ -134,12 +178,32 @@ int index;
         enterTask.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
                 if(e.getSource()== enterTask){
                     tasks.add(inputTask.getText());
                     newTask.append("\n\n        " + index + ": " + tasks.get(tasks.size()-1));
+                    inputTask.setText("");
                 }
                 index++;
             }
+        });
+
+        // Removes the list item based on an integer value passed into the text field
+        deleteTask.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int remover = Integer.parseInt(removeTask.getText());
+                newTask.setText("");
+                tasks.remove(remover - 1);
+                index = 1;
+
+                // This loop displays an index value and any values stored in the ArrayList
+                for (String task: tasks){
+                    index++;
+                    newTask.append("\n\n        " + (index - 1) + ": " + task);
+                }
+            }
+
         });
 
         // Allow all features to load onto frame before setting it as visible
@@ -153,4 +217,3 @@ int index;
     }
 
 }
-
