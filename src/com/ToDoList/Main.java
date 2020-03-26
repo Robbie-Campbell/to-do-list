@@ -11,12 +11,12 @@ error handling will be implemented.
 
  */
 
+import java.io.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
-
 
 
 public class Main{
@@ -26,13 +26,40 @@ JFrame main;
 JPanel mainPanel, headerPanel, todoListPanel, newTaskPanel;
 JEditorPane JTextArea;
 JTextField inputTask, removeTask;
-JButton enterTask, deleteTask;
+JButton enterTask, deleteTask, removeOption;
 JLabel header, instructions;
 Border raisedBorder;
 Font headerFont, mainFont;
 Color deepBlue, blue;
-String tasks;
+private ArrayList<String> tasks = new ArrayList<>();
 private int index, current;
+
+    private void saveFile(){
+
+        String fileName = "todolist.sav";
+            try {
+                ObjectInputStream is = new ObjectInputStream(new FileInputStream(fileName));
+                ArrayList values = (ArrayList) is.readObject();
+                if (tasks.size() == 0)
+                {
+                    for (Object value: values) {
+                        tasks.add(String.valueOf(value));
+                    }
+                }
+                is.close();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(fileName));
+                os.writeObject(tasks);
+                os.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("File saved");
+
+    }
 
     private Main(){
 
@@ -40,7 +67,6 @@ private int index, current;
 
         // Initialise these 2 variables to be added to within action listeners.
         index = 1;
-        ArrayList<String> tasks = new ArrayList<>();
 
         // Create all style variables here
         Color deepBlue = new Color(6,18,38);
@@ -102,9 +128,16 @@ private int index, current;
         newTask.setBackground(deepBlue);
         newTask.setForeground(Color.WHITE);
 
+        // Add the previously saved values to the to do list on load
+        saveFile();
+        for (String task : tasks) {
+            index++;
+            newTask.append("\n\n        " + (index - 1) + ": " + task);
+        }
+
         // Create the 2 textFields
         JTextField inputTask = new JTextField("Input a task here");
-        JTextField removeTask = new JTextField("Remove a task here");
+        JTextField removeTask = new JTextField("Remove a task here by entering the index value");
         inputTask.setBounds(20,550,380,30);
         todoListPanel.add(inputTask);
         removeTask.setBounds(20,590,380,30);
@@ -119,18 +152,23 @@ private int index, current;
 
             @Override
             public void keyPressed(KeyEvent e) {
-                int key = e.getKeyCode();
-                if(key == KeyEvent.VK_ENTER) {
-                    int remover = Integer.parseInt(removeTask.getText());
-                    newTask.setText("");
-                    tasks.remove(remover - 1);
-                    index = 1;
+                try {
+                    int key = e.getKeyCode();
+                    if(key == KeyEvent.VK_ENTER) {
+                        int remover = Integer.parseInt(removeTask.getText());
+                        newTask.setText("");
+                        tasks.remove(remover - 1);
+                        index = 1;
 
-                    // This loop displays an index value and any values stored in the ArrayList
-                    for (String task : tasks) {
-                        index++;
-                        newTask.append("\n\n        " + (index - 1) + ": " + task);
+                        // This loop displays an index value and any values stored in the ArrayList
+                        for (String task : tasks) {
+                            index++;
+                            newTask.append("\n\n        " + (index - 1) + ": " + task);
+                        }
+                        saveFile();
                     }
+                }catch(Exception z){
+                    removeTask.setText("Please enter a valid input");
                 }
             }
 
@@ -139,7 +177,6 @@ private int index, current;
                 //None
             }
         });
-
 
         // Create a key listener to append to do's to the list
         inputTask.addKeyListener(new KeyListener() {
@@ -156,6 +193,7 @@ private int index, current;
                     newTask.append("\n\n        " + index + ": " + tasks.get(tasks.size()-1));
                     index++;
                     inputTask.setText("");
+                    saveFile();
                 }
 
             }
@@ -166,7 +204,7 @@ private int index, current;
             }
         });
 
-        // Create the 2 input/ delete buttons and add action listeners
+        // Create the 3 buttons and add action listeners
         JButton enterTask = new JButton("Enter Task");
         JButton deleteTask = new JButton("Delete Task");
         enterTask.setBounds(410,550,130,30);
@@ -183,6 +221,7 @@ private int index, current;
                     tasks.add(inputTask.getText());
                     newTask.append("\n\n        " + index + ": " + tasks.get(tasks.size()-1));
                     inputTask.setText("");
+                    saveFile();
                 }
                 index++;
             }
@@ -192,15 +231,20 @@ private int index, current;
         deleteTask.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int remover = Integer.parseInt(removeTask.getText());
-                newTask.setText("");
-                tasks.remove(remover - 1);
-                index = 1;
+                try {
+                        int remover = Integer.parseInt(removeTask.getText());
+                        newTask.setText("");
+                        tasks.remove(remover - 1);
+                        index = 1;
 
-                // This loop displays an index value and any values stored in the ArrayList
-                for (String task: tasks){
-                    index++;
-                    newTask.append("\n\n        " + (index - 1) + ": " + task);
+                        // This loop displays an index value and any values stored in the ArrayList
+                        for (String task : tasks) {
+                            index++;
+                            newTask.append("\n\n        " + (index - 1) + ": " + task);
+                        }
+                    saveFile();
+                    }catch(Exception z){
+                    removeTask.setText("Please enter a valid input");
                 }
             }
 
@@ -215,5 +259,4 @@ private int index, current;
         Main run;
         run = new Main();
     }
-
 }
