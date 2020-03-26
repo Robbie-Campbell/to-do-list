@@ -13,56 +13,85 @@ error handling will be implemented.
 
 import java.io.*;
 import java.util.ArrayList;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 
 
 public class Main{
 
-// Initialise some GUI variables
-JFrame main;
-JPanel mainPanel, headerPanel, todoListPanel, newTaskPanel;
-JEditorPane JTextArea;
-JTextField inputTask, removeTask;
-JButton enterTask, deleteTask, removeOption;
-JLabel header, instructions;
-Border raisedBorder;
-Font headerFont, mainFont;
-Color deepBlue, blue;
-private ArrayList<String> tasks = new ArrayList<>();
-private int index, current;
+    // Create a function which is able to translate sound files into audio clips
+    private static void PlaySound(File Sound){
+        try{
+            Clip clip = AudioSystem.getClip();
+            clip.open(AudioSystem.getAudioInputStream(Sound));
+            clip.start();
 
-    private void saveFile(){
-
-        String fileName = "todolist.sav";
-            try {
-                ObjectInputStream is = new ObjectInputStream(new FileInputStream(fileName));
-                ArrayList values = (ArrayList) is.readObject();
-                if (tasks.size() == 0)
-                {
-                    for (Object value: values) {
-                        tasks.add(String.valueOf(value));
-                    }
-                }
-                is.close();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            try {
-                ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(fileName));
-                os.writeObject(tasks);
-                os.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.println("File saved");
-
+            Thread.sleep(clip.getMicrosecondLength()/1000);
+        }catch (Exception e){
+            System.out.println("Not a valid audio track");
+        }
     }
+
+
+    private ArrayList<String> tasks = new ArrayList<>();
+    private int index;
+    private String fileName = "todolist.sav";
+
+// Create functions which saves and reads todos
+    private void readFile() {
+
+        //Where to save data
+
+
+        // Start the method by creating a read object that's checks if there are any values in the file.
+        try {
+            ObjectInputStream is = new ObjectInputStream(new FileInputStream(fileName));
+
+            // Reads array list values from the file.
+            ArrayList values = (ArrayList) is.readObject();
+
+            // Always check the file before running the program to add saved data to the list
+
+            if (tasks.size() == 0) {
+                for (Object value : values) {
+                    tasks.add(String.valueOf(value));
+                }
+            }
+
+
+            // Close the file
+            is.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+                private void saveFile () {
+                // Write a new object into the file (This is done by the array increasing in size and the file being
+                // overwritten)
+                try {
+                    ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(fileName));
+                    os.writeObject(tasks);
+                    os.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Check the function has been run.
+                System.out.println("File saved");
+            }
+
 
     private Main(){
 
+        // A list of stale meme audioclips that play when the action listeners are used
+        File greatJob = new File("C:\\Users\\robbi\\IdeaProjects\\Collections_framework\\src\\com\\ToDoList\\greatJob.wav");
+        File noice = new File("C:\\Users\\robbi\\IdeaProjects\\Collections_framework\\src\\com\\ToDoList\\-click-nice_3.wav");
+        File okay = new File("C:\\Users\\robbi\\IdeaProjects\\Collections_framework\\src\\com\\ToDoList\\my-song-2_2.wav");
 ////////////////////// CREATE A GUI FOR THE TO DO LIST APPLICATION /////////////////////////////////
 
         // Initialise these 2 variables to be added to within action listeners.
@@ -129,7 +158,7 @@ private int index, current;
         newTask.setForeground(Color.WHITE);
 
         // Add the previously saved values to the to do list on load
-        saveFile();
+        readFile();
         for (String task : tasks) {
             index++;
             newTask.append("\n\n        " + (index - 1) + ": " + task);
@@ -159,13 +188,14 @@ private int index, current;
                         newTask.setText("");
                         tasks.remove(remover - 1);
                         index = 1;
-
+                        PlaySound(noice);
                         // This loop displays an index value and any values stored in the ArrayList
                         for (String task : tasks) {
                             index++;
                             newTask.append("\n\n        " + (index - 1) + ": " + task);
                         }
                         saveFile();
+
                     }
                 }catch(Exception z){
                     removeTask.setText("Please enter a valid input");
@@ -194,6 +224,7 @@ private int index, current;
                     index++;
                     inputTask.setText("");
                     saveFile();
+                    PlaySound(okay);
                 }
 
             }
@@ -206,48 +237,62 @@ private int index, current;
 
         // Create the 3 buttons and add action listeners
         JButton enterTask = new JButton("Enter Task");
-        JButton deleteTask = new JButton("Delete Task");
-        enterTask.setBounds(410,550,130,30);
-        deleteTask.setBounds(410,590,130,30);
+        JButton deleteTask = new JButton("Remove Task");
+        enterTask.setBounds(400,550,130,30);
+        deleteTask.setBounds(400,590,130,30);
         todoListPanel.add(deleteTask);
         todoListPanel.add(enterTask);
+
+        // Create an button that clears todos
+        JButton clearTodos = new JButton("Clear todos");
+        clearTodos.setBounds(400,10,130,30);
+        todoListPanel.add(clearTodos);
+
+        // Implement an action listener
+        clearTodos.addActionListener(e ->{
+            if (e.getSource() == clearTodos) {
+                index = 1;
+                newTask.setText("");
+                tasks.clear();
+                saveFile();
+                PlaySound(greatJob);
+                }
+        });
+
 
         // When the button is pressed a new to do will be appended to the list
         enterTask.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 if(e.getSource()== enterTask){
                     tasks.add(inputTask.getText());
                     newTask.append("\n\n        " + index + ": " + tasks.get(tasks.size()-1));
                     inputTask.setText("");
                     saveFile();
+                    PlaySound(okay);
                 }
                 index++;
             }
         });
 
         // Removes the list item based on an integer value passed into the text field
-        deleteTask.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                        int remover = Integer.parseInt(removeTask.getText());
-                        newTask.setText("");
-                        tasks.remove(remover - 1);
-                        index = 1;
+        deleteTask.addActionListener(e -> {
+            try {
+                    int remover = Integer.parseInt(removeTask.getText());
+                    newTask.setText("");
+                    tasks.remove(remover - 1);
+                    index = 1;
+                    PlaySound(noice);
+                    // This loop displays an index value and any values stored in the ArrayList
+                    for (String task : tasks) {
+                        index++;
+                        newTask.append("\n\n        " + (index - 1) + ": " + task);
+                    }
+                saveFile();
+                }catch(Exception z){
+                removeTask.setText("Please enter a valid input");
 
-                        // This loop displays an index value and any values stored in the ArrayList
-                        for (String task : tasks) {
-                            index++;
-                            newTask.append("\n\n        " + (index - 1) + ": " + task);
-                        }
-                    saveFile();
-                    }catch(Exception z){
-                    removeTask.setText("Please enter a valid input");
-                }
             }
-
         });
 
         // Allow all features to load onto frame before setting it as visible
@@ -259,4 +304,5 @@ private int index, current;
         Main run;
         run = new Main();
     }
+
 }
